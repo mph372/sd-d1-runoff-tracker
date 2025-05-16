@@ -46,7 +46,12 @@ function ExpendituresDashboard() {
         setLoading(true);
         
         // Fetch the CSV file
-        const response = await fetch(`${process.env.PUBLIC_URL}/data/expenditures.csv`);
+        const csvPath = window.location.hostname === 'localhost' 
+        ? `${process.env.PUBLIC_URL}/data/expenditures.csv` 
+        : `/sd-d1-runoff-tracker/data/expenditures.csv`;
+        
+        console.log('Fetching CSV from:', csvPath);
+        const response = await fetch(csvPath);        
         
         if (!response.ok) {
           throw new Error(`Failed to fetch CSV file: ${response.status} ${response.statusText}`);
