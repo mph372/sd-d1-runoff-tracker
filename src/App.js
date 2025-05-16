@@ -10,8 +10,10 @@ import ContributionsDashboard from './pages/ContributionsDashboard';
 import BallotReturnsDashboard from './pages/BallotReturnsDashboard';
 
 function App() {
+    const basename = process.env.NODE_ENV === 'production' ? '/sd-d1-runoff-tracker' : '';
+
   return (
-    <Router>
+    <Router basename={basename}>
       <div className="App">
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
           <div className="container">
