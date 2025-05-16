@@ -46,7 +46,7 @@ function ExpendituresDashboard() {
         setLoading(true);
         
         // Fetch the CSV file
-        const response = await fetch('/data/expenditures.csv');
+        const response = await fetch(`${process.env.PUBLIC_URL}/data/expenditures.csv`);
         
         if (!response.ok) {
           throw new Error(`Failed to fetch CSV file: ${response.status} ${response.statusText}`);
