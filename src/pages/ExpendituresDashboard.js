@@ -11,6 +11,33 @@ function ExpendituresDashboard() {
   const [selectedEntity, setSelectedEntity] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortConfig, setSortConfig] = useState({
+    key: 'date',
+    direction: 'descending' // Default sort: newest to oldest
+  });
+  
+  // Function to shorten entity names intelligently
+  const getShortenedEntityName = (fullName, maxLength = 30) => {
+    // Check if the name contains an AKA or parentheses
+    const akaMatch = fullName.match(/\(AKA:?\s*([^)]+)\)/i);
+    if (akaMatch) {
+      return akaMatch[1].trim();
+    }
+    
+    // Check for text in parentheses that might be an abbreviation
+    const parenMatch = fullName.match(/\(([^)]+)\)/);
+    if (parenMatch && parenMatch[1].trim().split(' ').length <= 3) {
+      return parenMatch[1].trim();
+    }
+    
+    // If name is already short enough, return it as is
+    if (fullName.length <= maxLength) {
+      return fullName;
+    }
+    
+    // Otherwise truncate with ellipsis
+    return fullName.substring(0, maxLength - 3) + '...';
+  };
   
   useEffect(() => {
     // Function to load and parse the CSV
@@ -65,10 +92,59 @@ function ExpendituresDashboard() {
     loadCSV();
   }, []);
   
+  // Function to handle sorting
+  const requestSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  // Sort function
+  const getSortedData = (items) => {
+    const sortableItems = [...items];
+    
+    sortableItems.sort((a, b) => {
+      // Date sorting requires special handling
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        
+        if (sortConfig.direction === 'ascending') {
+          return dateA - dateB;
+        }
+        return dateB - dateA;
+      }
+      
+      // Handle amount sorting
+      if (sortConfig.key === 'amount') {
+        if (sortConfig.direction === 'ascending') {
+          return a.amount - b.amount;
+        }
+        return b.amount - a.amount;
+      }
+      
+      // Default string sorting for other fields
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+    
+    return sortableItems;
+  };
+  
   // Filter data based on selected entity
   const filteredData = selectedEntity === 'All' 
     ? data 
     : data.filter(item => item.entity === selectedEntity);
+  
+  // Sort filtered data
+  const sortedAndFilteredData = getSortedData(filteredData);
   
   // Calculate total spending
   const totalSpending = filteredData.reduce((sum, item) => sum + item.amount, 0);
@@ -107,16 +183,31 @@ function ExpendituresDashboard() {
     }
   ];
   
-  // Create data for entity spending chart
+  // Create data for entity spending chart with shortened names
   const entitySpendingData = entities.map(entity => {
     const entityData = data.filter(item => item.entity === entity);
     const totalAmount = entityData.reduce((sum, item) => sum + item.amount, 0);
     
     return {
-      name: entity,
+      fullName: entity,
+      name: getShortenedEntityName(entity),
       amount: totalAmount
     };
   }).sort((a, b) => b.amount - a.amount).slice(0, 10); // Sort by amount and get top 10
+  
+  // Custom tooltip for entity spending chart to show full names
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-tooltip" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc' }}>
+          <p className="label"><strong>{payload[0].payload.fullName}</strong></p>
+          <p className="value">{`Amount: $${payload[0].value.toLocaleString()}`}</p>
+        </div>
+      );
+    }
+  
+    return null;
+  };
   
   // Party colors
   const partyColors = {
@@ -223,7 +314,7 @@ function ExpendituresDashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
                   <YAxis type="category" dataKey="name" width={150} />
-                  <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="amount" fill="#5BC0DE" />
                 </BarChart>
               </ResponsiveContainer>
@@ -241,16 +332,58 @@ function ExpendituresDashboard() {
             <table className="table table-striped">
               <thead>
                 <tr>
-                  <th>Organization</th>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Candidate</th>
-                  <th>Support/Oppose</th>
+                  <th onClick={() => requestSort('entity')} className="sortable-header">
+                    Organization
+                    {sortConfig.key === 'entity' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => requestSort('date')} className="sortable-header">
+                    Date
+                    {sortConfig.key === 'date' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => requestSort('description')} className="sortable-header">
+                    Description
+                    {sortConfig.key === 'description' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => requestSort('amount')} className="sortable-header">
+                    Amount
+                    {sortConfig.key === 'amount' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => requestSort('candidate')} className="sortable-header">
+                    Candidate
+                    {sortConfig.key === 'candidate' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
+                  <th onClick={() => requestSort('oppositionOrSupport')} className="sortable-header">
+                    Support/Oppose
+                    {sortConfig.key === 'oppositionOrSupport' && (
+                      <span className="ms-1">
+                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                      </span>
+                    )}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map((item, index) => (
+                {sortedAndFilteredData.map((item, index) => (
                   <tr key={index}>
                     <td>{item.entity}</td>
                     <td>{item.date}</td>
@@ -269,6 +402,17 @@ function ExpendituresDashboard() {
           </div>
         </div>
       </div>
+      
+      {/* Add some CSS for the sortable headers */}
+      <style jsx>{`
+        .sortable-header {
+          cursor: pointer;
+          user-select: none;
+        }
+        .sortable-header:hover {
+          background-color: #f8f9fa;
+        }
+      `}</style>
     </div>
   );
 }
