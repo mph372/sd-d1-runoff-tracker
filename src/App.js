@@ -1,4 +1,4 @@
-// src/App.js
+// src/App.js - Updated with header
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,7 +10,7 @@ import ContributionsDashboard from './pages/ContributionsDashboard';
 import BallotReturnsDashboard from './pages/BallotReturnsDashboard';
 
 function App() {
-    const basename = process.env.NODE_ENV === 'production' ? '/sd-d1-runoff-tracker' : '';
+  const basename = process.env.NODE_ENV === 'production' ? '/sd-d1-runoff-tracker' : '';
 
   return (
     <Router basename={basename}>
@@ -36,6 +36,20 @@ function App() {
             </div>
           </div>
         </nav>
+
+        {/* Attribution header */}
+        <div className="container mt-3 mb-4 pb-2 border-bottom small text-muted">
+          <p className="mb-1">
+            Created by <a href="mailto:mason@edgewater-strategies.com" className="text-primary">Mason Herron</a>. 
+            Email with questions, feedback, or other inquiries.
+          </p>
+          <p className="mb-1">
+            Follow <a href="https://x.com/mason_herron" className="text-primary" target="_blank" rel="noopener noreferrer">@mason_herron</a> or <a href="https://www.linkedin.com/in/masonherron/" className="text-primary" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+          </p>
+          <p className="mb-0">
+            Visit <a href="https://www.theballotbook.com" className="text-primary" target="_blank" rel="noopener noreferrer">www.theballotbook.com</a> for more California political data and analysis.
+          </p>
+        </div>
 
         <div className="container mt-4">
           <Routes>
