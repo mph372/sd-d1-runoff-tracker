@@ -1,4 +1,3 @@
-// src/pages/ExpendituresDashboard.js
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -15,9 +14,23 @@ function ExpendituresDashboard() {
     key: 'date',
     direction: 'descending' // Default sort: newest to oldest
   });
+  // Add window width state for responsive design
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  
+  // Track window resize for responsive adjustments
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Determine if we're on mobile
+  const isMobile = windowWidth < 768;
   
   // Function to shorten entity names intelligently
-  const getShortenedEntityName = (fullName, maxLength = 30) => {
+  const getShortenedEntityName = (fullName, maxLength = isMobile ? 20 : 30) => {
+    if (!fullName) return '';
+    
     // Check if the name contains an AKA or parentheses
     const akaMatch = fullName.match(/\(AKA:?\s*([^)]+)\)/i);
     if (akaMatch) {
@@ -72,7 +85,9 @@ function ExpendituresDashboard() {
               description: item.Description,
               amount: parseFloat(item.Amount.replace(/[^0-9.-]+/g, '')),  // Remove $ and commas
               candidate: item.Candidate,
-              oppositionOrSupport: item['Oppose/Support']
+              oppositionOrSupport: item['Oppose/Support'],
+              // Add shortened name for mobile display
+              shortEntityName: getShortenedEntityName(item.Entity)
             }));
             
             setData(processedData);
@@ -222,7 +237,7 @@ function ExpendituresDashboard() {
   
   if (loading) {
     return (
-      <div className="text-center my-5">
+      <div className="text-center my-3">
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -233,7 +248,7 @@ function ExpendituresDashboard() {
   
   if (error) {
     return (
-      <div className="alert alert-danger my-5" role="alert">
+      <div className="alert alert-danger my-3" role="alert">
         <h4>Error Loading Data</h4>
         <p>{error}</p>
       </div>
@@ -242,8 +257,8 @@ function ExpendituresDashboard() {
   
   return (
     <div>
-      <h1>Independent Expenditures Dashboard</h1>
-      <p>This dashboard shows independent expenditures for the San Diego District 1 Supervisor Runoff Election.</p>
+      <h1 className={isMobile ? "h3 mb-2" : "h2 mb-3"}>Independent Expenditures Dashboard</h1>
+      <p className={isMobile ? "small mb-3" : "mb-3"}>Showing independent expenditures for the San Diego District 1 Supervisor Runoff Election.</p>
       
       <div className="mb-3">
         <label htmlFor="entityFilter" className="form-label">Filter by Organization:</label>
@@ -255,16 +270,18 @@ function ExpendituresDashboard() {
         >
           <option value="All">All Organizations</option>
           {entities.map(entity => (
-            <option key={entity} value={entity}>{entity}</option>
+            <option key={entity} value={entity} title={entity}>
+              {isMobile ? getShortenedEntityName(entity, 40) : entity}
+            </option>
           ))}
         </select>
       </div>
       
-      <div className="row mb-4">
-        <div className="col-md-4">
+      <div className={`row mb-3 ${isMobile ? 'g-2' : 'g-3'}`}>
+        <div className={isMobile ? "col-12 mb-2" : "col-md-4"}>
           <TotalSpendingCard totalSpending={totalSpending} />
         </div>
-        <div className="col-md-4">
+        <div className={isMobile ? "col-6" : "col-md-4"}>
           <CandidateSpendingCard 
             candidate="Paloma Aguirre" 
             supportAmount={candidateData['Paloma Aguirre'].support} 
@@ -272,7 +289,7 @@ function ExpendituresDashboard() {
             color={partyColors['Paloma Aguirre']}
           />
         </div>
-        <div className="col-md-4">
+        <div className={isMobile ? "col-6" : "col-md-4"}>
           <CandidateSpendingCard 
             candidate="John McCann" 
             supportAmount={candidateData['John McCann'].support} 
@@ -282,69 +299,126 @@ function ExpendituresDashboard() {
         </div>
       </div>
       
-      <div className="card mb-4">
+      <div className="card mb-3">
         <div className="card-header">
           Expenditures by Candidate
         </div>
-        <div className="card-body">
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                <Legend />
-                <Bar dataKey="Support" fill="#28a745" />
-                <Bar dataKey="Oppose" fill="#dc3545" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="card-body p-0">
+          {/* Mobile-specific content */}
+          {isMobile && (
+            <div className="table-responsive">
+              <table className="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Support</th>
+                    <th>Oppose</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {chartData.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.name}</td>
+                      <td className="text-success">${item.Support.toLocaleString()}</td>
+                      <td className="text-danger">${item.Oppose.toLocaleString()}</td>
+                      <td>${(item.Support + item.Oppose).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Desktop chart content */}
+          {!isMobile && (
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                  <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                  <Legend />
+                  <Bar dataKey="Support" fill="#28a745" />
+                  <Bar dataKey="Oppose" fill="#dc3545" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
       
       {selectedEntity === 'All' && (
-        <div className="card mb-4">
+        <div className="card mb-3">
           <div className="card-header">
             Top Spending Organizations
           </div>
-          <div className="card-body">
-            <div style={{ width: '100%', height: 400 }}>
-              <ResponsiveContainer>
-                <BarChart 
-                  data={entitySpendingData} 
-                  layout="vertical"
-                  margin={{ left: 150 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                  <YAxis type="category" dataKey="name" width={150} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="amount" fill="#5BC0DE" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="card-body p-0">
+            {/* Mobile-specific content */}
+            {isMobile && (
+              <div className="table-responsive">
+                <table className="table table-striped mb-0">
+                  <thead>
+                    <tr>
+                      <th>Organization</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entitySpendingData.map((item, index) => (
+                      <tr key={index}>
+                        <td title={item.fullName}>{item.name}</td>
+                        <td>${item.amount.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
+            {/* Desktop chart content */}
+            {!isMobile && (
+              <div style={{ width: '100%', height: 400 }}>
+                <ResponsiveContainer>
+                  <BarChart 
+                    data={entitySpendingData} 
+                    layout="vertical"
+                    margin={{ left: 150 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                    <YAxis type="category" dataKey="name" width={150} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="amount" fill="#5BC0DE" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </div>
         </div>
       )}
       
       <div className="card">
-        <div className="card-header">
-          Itemized Expenditures
+        <div className="card-header d-flex justify-content-between align-items-center">
+          <span>Itemized Expenditures</span>
+          <span className="badge bg-secondary">{sortedAndFilteredData.length} records</span>
         </div>
-        <div className="card-body">
+        <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-striped">
+            <table className="table table-striped mb-0">
               <thead>
                 <tr>
-                  <th onClick={() => requestSort('entity')} className="sortable-header">
-                    Organization
-                    {sortConfig.key === 'entity' && (
-                      <span className="ms-1">
-                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
+                  {!isMobile && (
+                    <th onClick={() => requestSort('entity')} className="sortable-header">
+                      Organization
+                      {sortConfig.key === 'entity' && (
+                        <span className="ms-1">
+                          {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                        </span>
+                      )}
+                    </th>
+                  )}
                   <th onClick={() => requestSort('date')} className="sortable-header">
                     Date
                     {sortConfig.key === 'date' && (
@@ -353,14 +427,16 @@ function ExpendituresDashboard() {
                       </span>
                     )}
                   </th>
-                  <th onClick={() => requestSort('description')} className="sortable-header">
-                    Description
-                    {sortConfig.key === 'description' && (
-                      <span className="ms-1">
-                        {sortConfig.direction === 'ascending' ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </th>
+                  {!isMobile && (
+                    <th onClick={() => requestSort('description')} className="sortable-header">
+                      Description
+                      {sortConfig.key === 'description' && (
+                        <span className="ms-1">
+                          {sortConfig.direction === 'ascending' ? '▲' : '▼'}
+                        </span>
+                      )}
+                    </th>
+                  )}
                   <th onClick={() => requestSort('amount')} className="sortable-header">
                     Amount
                     {sortConfig.key === 'amount' && (
@@ -378,7 +454,7 @@ function ExpendituresDashboard() {
                     )}
                   </th>
                   <th onClick={() => requestSort('oppositionOrSupport')} className="sortable-header">
-                    Support/Oppose
+                    {isMobile ? 'S/O' : 'Support/Oppose'}
                     {sortConfig.key === 'oppositionOrSupport' && (
                       <span className="ms-1">
                         {sortConfig.direction === 'ascending' ? '▲' : '▼'}
@@ -390,14 +466,14 @@ function ExpendituresDashboard() {
               <tbody>
                 {sortedAndFilteredData.map((item, index) => (
                   <tr key={index}>
-                    <td>{item.entity}</td>
+                    {!isMobile && <td title={item.entity}>{item.shortEntityName}</td>}
                     <td>{item.date}</td>
-                    <td>{item.description}</td>
+                    {!isMobile && <td>{item.description}</td>}
                     <td>${item.amount.toLocaleString()}</td>
                     <td>{item.candidate}</td>
                     <td>
                       <span className={item.oppositionOrSupport === 'Support' ? 'text-success' : 'text-danger'}>
-                        {item.oppositionOrSupport}
+                        {isMobile ? (item.oppositionOrSupport === 'Support' ? 'S' : 'O') : item.oppositionOrSupport}
                       </span>
                     </td>
                   </tr>
@@ -408,7 +484,7 @@ function ExpendituresDashboard() {
         </div>
       </div>
       
-      {/* Add some CSS for the sortable headers */}
+      {/* Add some CSS for the sortable headers and mobile optimization */}
       <style jsx>{`
         .sortable-header {
           cursor: pointer;
@@ -416,6 +492,27 @@ function ExpendituresDashboard() {
         }
         .sortable-header:hover {
           background-color: #f8f9fa;
+        }
+        
+        /* Mobile optimization styles */
+        @media (max-width: 767.98px) {
+          .card-header {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+          }
+          .table th, .table td {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+          }
+          .table-responsive {
+            margin-bottom: 0;
+          }
+          .sortable-header {
+            white-space: nowrap;
+          }
+          .badge {
+            font-size: 0.7rem;
+          }
         }
       `}</style>
     </div>
