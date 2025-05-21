@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
 
 function ContributionsDashboard() {
@@ -23,6 +23,7 @@ function ContributionsDashboard() {
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+  const CONTRIBUTOR_CHART_COLOR = '#7373DB';
 
   // Effect to handle window resize
   useEffect(() => {
@@ -130,6 +131,37 @@ function ContributionsDashboard() {
     return Array.from(uniqueMap.values());
   };
   
+  // Normalize contributor names for consistency - simplified to avoid issues
+  const normalizeContributorName = (name) => {
+    if (!name) return '';
+    
+    // Remove excess whitespace
+    name = name.trim();
+    
+    // Handle specific duplicate cases only
+    if (name.includes('THE LINCOLN CLUB OF SAN DIEGO COUNTY')) {
+      return 'Lincoln Club of San Diego County';
+    }
+    if (name.includes('LINCOLN CLUB OF SAN DIEGO COUNTY, THE')) {
+      return 'Lincoln Club of San Diego County';
+    }
+    
+    // Remove "THE" at beginning only if in ALL CAPS
+    if (name.startsWith('THE ') && name === name.toUpperCase()) {
+      name = name.substring(4);
+    }
+    
+    // Use title case instead of all caps
+    if (name === name.toUpperCase()) {
+      return name.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    }
+    
+    // Return original name if not all caps
+    return name;
+  };
+  
   // Effect to filter data
   useEffect(() => {
     if (data.length === 0) return;
@@ -216,7 +248,17 @@ function ContributionsDashboard() {
     // Top contributors
     const contributorMap = new Map();
     dataArray.forEach(item => {
-      const contributor = (item.contributor + ' ' + item.contributorFirstName).trim();
+      // Normalize the contributor name
+      let contributor = '';
+      if (item.contributor) {
+        contributor = normalizeContributorName(
+          (item.contributor + ' ' + (item.contributorFirstName || '')).trim()
+        );
+      } else {
+        // Skip empty contributors
+        return;
+      }
+      
       if (contributor) {
         const currentAmount = contributorMap.get(contributor) || 0;
         contributorMap.set(contributor, currentAmount + item.amount);
@@ -237,8 +279,9 @@ function ContributionsDashboard() {
     const committeeMap = new Map();
     dataArray.forEach(item => {
       if (item.committee) {
-        const currentAmount = committeeMap.get(item.committee) || 0;
-        committeeMap.set(item.committee, currentAmount + item.amount);
+        const normalizedCommittee = normalizeContributorName(item.committee);
+        const currentAmount = committeeMap.get(normalizedCommittee) || 0;
+        committeeMap.set(normalizedCommittee, currentAmount + item.amount);
       }
     });
     
@@ -387,28 +430,53 @@ function ContributionsDashboard() {
               </div>
             )}
             
-            {/* Desktop chart content */}
+            {/* Desktop chart content - Improved version */}
             {!isMobile && (
               <div style={{ width: '100%', height: 400 }}>
                 <ResponsiveContainer>
                   <BarChart
                     data={stats.topContributors}
                     layout="vertical"
-                    margin={{ left: 200, right: 30, top: 10, bottom: 10 }}
+                    margin={{ left: 200, right: 40, top: 20, bottom: 10 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} />
+                    <XAxis 
+                      type="number" 
+                      tickFormatter={(value) => `$${value.toLocaleString()}`} 
+                      domain={[0, 'dataMax']}
+                      padding={{ left: 10, right: 10 }}
+                    />
                     <YAxis 
                       type="category" 
                       dataKey="name" 
-                      width={200}
-                      tick={{ textAnchor: 'end' }}
+                      width={190}
+                      tick={{ 
+                        textAnchor: 'end', 
+                        fill: '#333',
+                        fontSize: 12,
+                        fontWeight: 500,
+                      }}
                     />
                     <Tooltip 
                       formatter={(value) => `$${value.toLocaleString()}`} 
                       labelFormatter={(value) => value}
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        padding: '8px'
+                      }}
                     />
-                    <Bar dataKey="amount" fill="#8884d8" />
+                    <Bar 
+                      dataKey="amount" 
+                      fill={CONTRIBUTOR_CHART_COLOR}
+                      barSize={26}
+                      radius={[0, 4, 4, 0]}
+                    >
+                      {stats.topContributors.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CONTRIBUTOR_CHART_COLOR} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -443,28 +511,49 @@ function ContributionsDashboard() {
               </div>
             )}
             
-            {/* Desktop chart content */}
+            {/* Desktop chart content - Also improved */}
             {!isMobile && (
               <div style={{ width: '100%', height: 400 }}>
                 <ResponsiveContainer>
                   <BarChart
                     data={stats.topCommittees}
                     layout="vertical"
-                    margin={{ left: 200, right: 30, top: 10, bottom: 10 }}
+                    margin={{ left: 200, right: 40, top: 20, bottom: 10 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} />
+                    <XAxis 
+                      type="number" 
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
+                      domain={[0, 'dataMax']} 
+                      padding={{ left: 10, right: 10 }}
+                    />
                     <YAxis 
                       type="category" 
                       dataKey="name" 
-                      width={200}
-                      tick={{ textAnchor: 'end' }}
+                      width={190}
+                      tick={{ 
+                        textAnchor: 'end',
+                        fill: '#333',
+                        fontSize: 12,
+                        fontWeight: 500,
+                      }}
                     />
                     <Tooltip 
                       formatter={(value) => `$${value.toLocaleString()}`} 
                       labelFormatter={(value) => value}
+                      contentStyle={{ 
+                        backgroundColor: '#fff', 
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        padding: '8px'
+                      }}
                     />
-                    <Bar dataKey="amount" fill="#82ca9d" />
+                    <Bar 
+                      dataKey="amount" 
+                      fill="#82ca9d"
+                      barSize={26}
+                      radius={[0, 4, 4, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
