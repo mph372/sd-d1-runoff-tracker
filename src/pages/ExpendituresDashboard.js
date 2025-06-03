@@ -78,17 +78,19 @@ function ExpendituresDashboard() {
           dynamicTyping: true,
           skipEmptyLines: true,
           complete: (results) => {
-            // Process the data
-            const processedData = results.data.map(item => ({
-              entity: item.Entity,
-              date: item.Date,
-              description: item.Description,
-              amount: parseFloat(item.Amount.replace(/[^0-9.-]+/g, '')),  // Remove $ and commas
-              candidate: item.Candidate,
-              oppositionOrSupport: item['Oppose/Support'],
-              // Add shortened name for mobile display
-              shortEntityName: getShortenedEntityName(item.Entity)
-            }));
+                // Process the data
+                const processedData = results.data.map(item => ({
+                entity: item.Entity,
+                date: item.Date,
+                description: item.Description,
+                amount: typeof item.Amount === 'string' 
+                    ? parseFloat(item.Amount.replace(/[^0-9.-]+/g, ''))  // Remove $ and commas from strings
+                    : parseFloat(item.Amount),  // Handle numbers directly
+                candidate: item.Candidate,
+                oppositionOrSupport: item['Oppose/Support'],
+                // Add shortened name for mobile display
+                shortEntityName: getShortenedEntityName(item.Entity)
+                }));
             
             setData(processedData);
             
