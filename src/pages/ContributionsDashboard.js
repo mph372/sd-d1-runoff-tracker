@@ -132,35 +132,35 @@ function ContributionsDashboard() {
   };
   
   // Normalize contributor names for consistency - simplified to avoid issues
-  const normalizeContributorName = (name) => {
-    if (!name) return '';
-    
-    // Remove excess whitespace
-    name = name.trim();
-    
-    // Handle specific duplicate cases only
-    if (name.includes('THE LINCOLN CLUB OF SAN DIEGO COUNTY')) {
-      return 'Lincoln Club of San Diego County';
-    }
-    if (name.includes('LINCOLN CLUB OF SAN DIEGO COUNTY, THE')) {
-      return 'Lincoln Club of San Diego County';
-    }
-    
-    // Remove "THE" at beginning only if in ALL CAPS
-    if (name.startsWith('THE ') && name === name.toUpperCase()) {
-      name = name.substring(4);
-    }
-    
-    // Use title case instead of all caps
-    if (name === name.toUpperCase()) {
-      return name.split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-    }
-    
-    // Return original name if not all caps
-    return name;
-  };
+  // Enhanced normalize contributor name function with better case-insensitive handling
+const normalizeContributorName = (name) => {
+  if (!name) return '';
+  
+  // Remove excess whitespace
+  name = name.trim();
+  
+  // Handle specific duplicate cases with case-insensitive matching
+  const upperName = name.toUpperCase();
+  if (upperName.includes('THE LINCOLN CLUB OF SAN DIEGO COUNTY') || 
+      upperName.includes('LINCOLN CLUB OF SAN DIEGO COUNTY, THE')) {
+    return 'Lincoln Club of San Diego County';
+  }
+  
+  // Remove "THE" at beginning only if in ALL CAPS
+  if (upperName.startsWith('THE ') && name === name.toUpperCase()) {
+    name = name.substring(4);
+  }
+  
+  // Use title case instead of all caps
+  if (name === name.toUpperCase()) {
+    return name.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Return original name if not all caps
+  return name;
+};
   
   // Effect to filter data
   useEffect(() => {
