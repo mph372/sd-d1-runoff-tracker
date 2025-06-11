@@ -65,8 +65,7 @@ function ContributionsDashboard() {
               .filter(row => row.Form_Type !== 'F497P2')
               .map(row => {
                 // Normalize committee name
-                let committee = row['Filer_Nam L'] || '';
-                
+                let committee = normalizeCommitteeName(row['Filer_Nam L'] || '');                
                 // Combine Imperial Beach Locals committees
                 if (row.Filer_ID === 1467372) {
                     committee = 'IMPERIAL BEACH LOCALS AND SOUTH BAY LOCALS';
@@ -91,10 +90,10 @@ function ContributionsDashboard() {
             setData(uniqueData);
             
             // Extract unique committees
-            const uniqueCommittees = [...new Set(uniqueData
-              .map(item => item.committee)
-              .filter(committee => committee && committee.trim() !== ''))]
-              .sort();
+const uniqueCommittees = [...new Set(uniqueData
+  .map(item => normalizeCommitteeName(item.committee))
+  .filter(committee => committee && committee.trim() !== ''))]
+  .sort();
             
             setCommittees(uniqueCommittees);
             
@@ -146,20 +145,25 @@ const normalizeContributorName = (name) => {
     return 'Lincoln Club of San Diego County';
   }
   
-  // Remove "THE" at beginning only if in ALL CAPS
-  if (upperName.startsWith('THE ') && name === name.toUpperCase()) {
-    name = name.substring(4);
-  }
+  // Convert to title case for consistency (this handles the general case)
+  const titleCased = name.split(' ')
+    .map(word => {
+      if (word.length === 0) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
   
-  // Use title case instead of all caps
-  if (name === name.toUpperCase()) {
-    return name.split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  }
-  
-  // Return original name if not all caps
-  return name;
+  return titleCased;
+};
+
+const normalizeCommitteeName = (name) => {
+  if (!name) return '';
+  return name
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // strip punctuation
+    .toUpperCase();          // consistent casing
 };
   
   // Effect to filter data
@@ -169,9 +173,11 @@ const normalizeContributorName = (name) => {
     let result = [...data];
     
     // Filter by committee if one is selected
-    if (selectedCommittee !== 'All') {
-      result = result.filter(item => item.committee === selectedCommittee);
-    }
+if (selectedCommittee !== 'All') {
+  result = result.filter(
+    item => normalizeCommitteeName(item.committee) === selectedCommittee
+  );
+}
     
     // Filter by search term
     if (searchTerm.trim() !== '') {
@@ -202,6 +208,8 @@ const normalizeContributorName = (name) => {
     }
     setSortConfig({ key, direction });
   };
+
+  
   
   // Sort function
   const getSortedData = (items) => {
@@ -280,7 +288,7 @@ const calculateStats = (dataArray) => {
   dataArray.forEach(item => {
     if (item.committee) {
       // Use the normalized name as the key (case-insensitive)
-      const normalizedCommittee = normalizeContributorName(item.committee);
+const normalizedCommittee = normalizeCommitteeName(item.committee);
       const currentAmount = committeeMap.get(normalizedCommittee) || 0;
       committeeMap.set(normalizedCommittee, currentAmount + item.amount);
     }
