@@ -244,62 +244,63 @@ const normalizeContributorName = (name) => {
   };
   
   // Calculate summary statistics
-  const calculateStats = (dataArray) => {
-    // Top contributors
-    const contributorMap = new Map();
-    dataArray.forEach(item => {
-      // Normalize the contributor name
-      let contributor = '';
-      if (item.contributor) {
-        contributor = normalizeContributorName(
-          (item.contributor + ' ' + (item.contributorFirstName || '')).trim()
-        );
-      } else {
-        // Skip empty contributors
-        return;
-      }
-      
-      if (contributor) {
-        const currentAmount = contributorMap.get(contributor) || 0;
-        contributorMap.set(contributor, currentAmount + item.amount);
-      }
-    });
+const calculateStats = (dataArray) => {
+  // Top contributors
+  const contributorMap = new Map();
+  dataArray.forEach(item => {
+    // Normalize the contributor name
+    let contributor = '';
+    if (item.contributor) {
+      contributor = normalizeContributorName(
+        (item.contributor + ' ' + (item.contributorFirstName || '')).trim()
+      );
+    } else {
+      // Skip empty contributors
+      return;
+    }
     
-    const topContributors = Array.from(contributorMap.entries())
-      .map(([name, amount]) => ({ 
-        name, 
-        amount,
-        // Add shortened name for mobile display
-        shortName: shortenName(name)
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 10);
-    
-    // Committees receiving funds
-    const committeeMap = new Map();
-    dataArray.forEach(item => {
-      if (item.committee) {
-        const normalizedCommittee = normalizeContributorName(item.committee);
-        const currentAmount = committeeMap.get(normalizedCommittee) || 0;
-        committeeMap.set(normalizedCommittee, currentAmount + item.amount);
-      }
-    });
-    
-    const topCommittees = Array.from(committeeMap.entries())
-      .map(([name, amount]) => ({ 
-        name, 
-        amount,
-        // Add shortened name for mobile display
-        shortName: shortenName(name)
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 10);
-    
-    setStats({
-      topContributors,
-      topCommittees
-    });
-  };
+    if (contributor) {
+      const currentAmount = contributorMap.get(contributor) || 0;
+      contributorMap.set(contributor, currentAmount + item.amount);
+    }
+  });
+  
+  const topContributors = Array.from(contributorMap.entries())
+    .map(([name, amount]) => ({ 
+      name, 
+      amount,
+      // Add shortened name for mobile display
+      shortName: shortenName(name)
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 10);
+  
+  // Committees receiving funds - normalize committee names case-insensitively
+  const committeeMap = new Map();
+  dataArray.forEach(item => {
+    if (item.committee) {
+      // Use the normalized name as the key (case-insensitive)
+      const normalizedCommittee = normalizeContributorName(item.committee);
+      const currentAmount = committeeMap.get(normalizedCommittee) || 0;
+      committeeMap.set(normalizedCommittee, currentAmount + item.amount);
+    }
+  });
+  
+  const topCommittees = Array.from(committeeMap.entries())
+    .map(([name, amount]) => ({ 
+      name, 
+      amount,
+      // Add shortened name for mobile display
+      shortName: shortenName(name)
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 10);
+  
+  setStats({
+    topContributors,
+    topCommittees
+  });
+};
   
   // Function to shorten names for mobile display
   const shortenName = (name) => {
