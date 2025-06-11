@@ -417,79 +417,24 @@ const normalizedCommittee = normalizeCommitteeName(item.committee);
             Top Contributors
           </div>
           <div className="card-body p-0">
-            {/* Mobile-specific chart content */}
-            {isMobile && (
-              <div className="table-responsive">
-                <table className="table table-striped mb-0">
-                  <thead>
-                    <tr>
-                      <th>Contributor</th>
-                      <th>Amount</th>
+            <div className="table-responsive">
+              <table className="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Contributor</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.topContributors.map((item, index) => (
+                    <tr key={index}>
+                      <td title={item.name}>{item.name}</td>
+                      <td>${item.amount.toLocaleString()}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {stats.topContributors.map((item, index) => (
-                      <tr key={index}>
-                        <td title={item.name}>{item.shortName}</td>
-                        <td>${item.amount.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            
-            {/* Desktop chart content - Improved version */}
-            {!isMobile && (
-              <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={stats.topContributors}
-                    layout="vertical"
-                    margin={{ left: 200, right: 40, top: 20, bottom: 10 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} />
-                    <XAxis 
-                      type="number" 
-                      tickFormatter={(value) => `$${value.toLocaleString()}`} 
-                      domain={[0, 'dataMax']}
-                      padding={{ left: 10, right: 10 }}
-                    />
-                    <YAxis 
-                      type="category" 
-                      dataKey="name" 
-                      width={190}
-                      tick={{ 
-                        textAnchor: 'end', 
-                        fill: '#333',
-                        fontSize: 12,
-                        fontWeight: 500,
-                      }}
-                    />
-                    <Tooltip 
-                      formatter={(value) => `$${value.toLocaleString()}`} 
-                      labelFormatter={(value) => value}
-                      contentStyle={{ 
-                        backgroundColor: '#fff', 
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        padding: '8px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="amount" 
-                      fill={CONTRIBUTOR_CHART_COLOR}
-                      barSize={26}
-                      radius={[0, 4, 4, 0]}
-                    >
-                      {stats.topContributors.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CONTRIBUTOR_CHART_COLOR} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         
@@ -498,75 +443,24 @@ const normalizedCommittee = normalizeCommitteeName(item.committee);
             Committees Receiving Contributions
           </div>
           <div className="card-body p-0">
-            {/* Mobile-specific chart content */}
-            {isMobile && (
-              <div className="table-responsive">
-                <table className="table table-striped mb-0">
-                  <thead>
-                    <tr>
-                      <th>Committee</th>
-                      <th>Amount</th>
+            <div className="table-responsive">
+              <table className="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Committee</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.topCommittees.map((item, index) => (
+                    <tr key={index}>
+                      <td title={item.name}>{item.name}</td>
+                      <td>${item.amount.toLocaleString()}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {stats.topCommittees.map((item, index) => (
-                      <tr key={index}>
-                        <td title={item.name}>{item.shortName}</td>
-                        <td>${item.amount.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            
-            {/* Desktop chart content - Also improved */}
-            {!isMobile && (
-              <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={stats.topCommittees}
-                    layout="vertical"
-                    margin={{ left: 200, right: 40, top: 20, bottom: 10 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} />
-                    <XAxis 
-                      type="number" 
-                      tickFormatter={(value) => `$${value.toLocaleString()}`}
-                      domain={[0, 'dataMax']} 
-                      padding={{ left: 10, right: 10 }}
-                    />
-                    <YAxis 
-                      type="category" 
-                      dataKey="name" 
-                      width={190}
-                      tick={{ 
-                        textAnchor: 'end',
-                        fill: '#333',
-                        fontSize: 12,
-                        fontWeight: 500,
-                      }}
-                    />
-                    <Tooltip 
-                      formatter={(value) => `$${value.toLocaleString()}`} 
-                      labelFormatter={(value) => value}
-                      contentStyle={{ 
-                        backgroundColor: '#fff', 
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        padding: '8px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="amount" 
-                      fill="#82ca9d"
-                      barSize={26}
-                      radius={[0, 4, 4, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -629,18 +523,38 @@ const normalizedCommittee = normalizeCommitteeName(item.committee);
               </thead>
               <tbody>
                 {filteredData.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.date}</td>
-                    <td title={formatContributorName(item.contributor, item.contributorFirstName)}>
-                      {isMobile 
-                        ? shortenName(formatContributorName(item.contributor, item.contributorFirstName))
-                        : formatContributorName(item.contributor, item.contributorFirstName)
-                      }
-                    </td>
-                    {!isMobile && <td>{item.committee}</td>}
-                    <td>${item.amount.toLocaleString()}</td>
-                    {!isMobile && <td>{item.formType}</td>}
-                  </tr>
+                  isMobile ? (
+                    <tr key={index}>
+                      <td colSpan="5">
+                        <details>
+                          <summary className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <span className="me-2">▶️</span>
+                              {shortenName(formatContributorName(item.contributor, item.contributorFirstName))} — ${item.amount.toLocaleString()}
+                            </div>
+                            <span className="text-muted small">{item.date}</span>
+                          </summary>
+                          <div className="mt-2">
+                            <p className="mb-1"><strong>Contributor:</strong> {formatContributorName(item.contributor, item.contributorFirstName)}</p>
+                            <p className="mb-1"><strong>Committee:</strong> {item.committee}</p>
+                            <p className="mb-1"><strong>Amount:</strong> ${item.amount.toLocaleString()}</p>
+                            <p className="mb-1"><strong>Date:</strong> {item.date}</p>
+                            <p className="mb-0"><strong>Form Type:</strong> {item.formType}</p>
+                          </div>
+                        </details>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={index}>
+                      <td>{item.date}</td>
+                      <td title={formatContributorName(item.contributor, item.contributorFirstName)}>
+                        {formatContributorName(item.contributor, item.contributorFirstName)}
+                      </td>
+                      <td>{item.committee}</td>
+                      <td>${item.amount.toLocaleString()}</td>
+                      <td>{item.formType}</td>
+                    </tr>
+                  )
                 ))}
               </tbody>
             </table>

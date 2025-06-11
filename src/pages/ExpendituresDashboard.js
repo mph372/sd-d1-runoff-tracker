@@ -357,46 +357,24 @@ function ExpendituresDashboard() {
             Top Spending Organizations
           </div>
           <div className="card-body p-0">
-            {/* Mobile-specific content */}
-            {isMobile && (
-              <div className="table-responsive">
-                <table className="table table-striped mb-0">
-                  <thead>
-                    <tr>
-                      <th>Organization</th>
-                      <th>Amount</th>
+            <div className="table-responsive">
+              <table className="table table-striped mb-0">
+                <thead>
+                  <tr>
+                    <th>Organization</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entitySpendingData.map((item, index) => (
+                    <tr key={index}>
+                      <td title={item.fullName}>{item.fullName}</td>
+                      <td>${item.amount.toLocaleString()}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {entitySpendingData.map((item, index) => (
-                      <tr key={index}>
-                        <td title={item.fullName}>{item.name}</td>
-                        <td>${item.amount.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            
-            {/* Desktop chart content */}
-            {!isMobile && (
-              <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
-                  <BarChart 
-                    data={entitySpendingData} 
-                    layout="vertical"
-                    margin={{ left: 150 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString()}`} />
-                    <YAxis type="category" dataKey="name" width={150} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="amount" fill="#5BC0DE" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -467,18 +445,47 @@ function ExpendituresDashboard() {
               </thead>
               <tbody>
                 {sortedAndFilteredData.map((item, index) => (
-                  <tr key={index}>
-                    {!isMobile && <td title={item.entity}>{item.shortEntityName}</td>}
-                    <td>{item.date}</td>
-                    {!isMobile && <td>{item.description}</td>}
-                    <td>${item.amount.toLocaleString()}</td>
-                    <td>{item.candidate}</td>
-                    <td>
-                      <span className={item.oppositionOrSupport === 'Support' ? 'text-success' : 'text-danger'}>
-                        {isMobile ? (item.oppositionOrSupport === 'Support' ? 'S' : 'O') : item.oppositionOrSupport}
-                      </span>
-                    </td>
-                  </tr>
+                  isMobile ? (
+                    <tr key={index}>
+                      <td colSpan="6" style={{ padding: 0, border: 0 }}>
+                        <details>
+                          <summary className="d-flex justify-content-between align-items-center">
+                            <div>
+                              <span className="me-2" style={{ fontSize: '1.1em', verticalAlign: 'middle' }}>▶️</span>
+                              {getShortenedEntityName(item.entity)} — ${item.amount.toLocaleString()}
+                            </div>
+                            <span className="text-muted small">{item.date}</span>
+                          </summary>
+                          <div className="mt-2 px-2">
+                            <p className="mb-1"><strong>Organization:</strong> {item.entity}</p>
+                            <p className="mb-1"><strong>Description:</strong> {item.description}</p>
+                            <p className="mb-1"><strong>Amount:</strong> ${item.amount.toLocaleString()}</p>
+                            <p className="mb-1"><strong>Date:</strong> {item.date}</p>
+                            <p className="mb-1"><strong>Candidate:</strong> {item.candidate}</p>
+                            <p className="mb-0">
+                              <strong>Support/Oppose:</strong>{' '}
+                              <span className={item.oppositionOrSupport === 'Support' ? 'text-success' : 'text-danger'}>
+                                {item.oppositionOrSupport}
+                              </span>
+                            </p>
+                          </div>
+                        </details>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr key={index}>
+                      {!isMobile && <td title={item.entity}>{item.shortEntityName}</td>}
+                      <td>{item.date}</td>
+                      {!isMobile && <td>{item.description}</td>}
+                      <td>${item.amount.toLocaleString()}</td>
+                      <td>{item.candidate}</td>
+                      <td>
+                        <span className={item.oppositionOrSupport === 'Support' ? 'text-success' : 'text-danger'}>
+                          {item.oppositionOrSupport}
+                        </span>
+                      </td>
+                    </tr>
+                  )
                 ))}
               </tbody>
             </table>
