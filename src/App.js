@@ -1,5 +1,5 @@
 // src/App.js - Updated with header
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -11,6 +11,16 @@ import BallotReturnsDashboard from './pages/BallotReturnsDashboard';
 
 function App() {
   const basename = process.env.NODE_ENV === 'production' ? '/sd-d1-runoff-tracker' : '';
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Track window resize for responsive adjustments
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   return (
     <Router basename={basename}>
@@ -37,17 +47,36 @@ function App() {
           </div>
         </nav>
 
+        {/* Banner section */}
+        <div className="container-fluid py-3 bg-light border-bottom">
+          <div className="container text-center">
+            <a 
+              href="https://www.theballotbook.com?utm_source=sd_d1_tracker&utm_medium=referral&utm_campaign=runoff_2025" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="d-inline-block"
+            >
+              <img 
+                src={`${process.env.PUBLIC_URL}/ballot_book${isMobile ? '_mobile' : ''}.png`}
+                alt="The Ballot Book"
+                className="img-fluid"
+                style={{ 
+                  maxHeight: isMobile ? '120px' : '100px',
+                  height: 'auto'
+                }}
+              />
+            </a>
+          </div>
+        </div>
+
         {/* Attribution header */}
         <div className="container mt-3 mb-4 pb-2 border-bottom small text-muted">
           <p className="mb-1">
             Created by <a href="mailto:mason@edgewater-strategies.com" className="text-primary">Mason Herron</a>. 
             Email with questions, feedback, or other inquiries.
           </p>
-          <p className="mb-1">
-            Follow <a href="https://x.com/mason_herron" className="text-primary" target="_blank" rel="noopener noreferrer">@mason_herron</a> or <a href="https://www.linkedin.com/in/masonherron/" className="text-primary" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
-          </p>
           <p className="mb-0">
-            Visit <a href="https://www.theballotbook.com" className="text-primary" target="_blank" rel="noopener noreferrer">www.theballotbook.com</a> for more California political data and analysis.
+            Follow <a href="https://x.com/mason_herron" className="text-primary" target="_blank" rel="noopener noreferrer">@mason_herron</a> or <a href="https://www.linkedin.com/in/masonherron/" className="text-primary" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
           </p>
         </div>
 
