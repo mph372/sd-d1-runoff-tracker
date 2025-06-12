@@ -111,10 +111,11 @@ function BallotReturnsDashboard() {
   
   // Calculate batch changes
   const getBatchChanges = () => {
-    if (runoffData.length < 2) return [];
+    if (runoffData.length < 3) return []; // Need at least registration + 2 data points
     
     const changes = [];
-    for (let i = 1; i < runoffData.length; i++) {
+    // Start from index 2 (second data point) since index 0 is registration and index 1 is first batch
+    for (let i = 2; i < runoffData.length; i++) {
       const current = runoffData[i];
       const previous = runoffData[i - 1];
       
@@ -133,6 +134,18 @@ function BallotReturnsDashboard() {
         demPercent,
         repPercent,
         otherPercent
+      });
+    }
+    
+    // Also add the first batch (compared to zero)
+    if (runoffData.length >= 2) {
+      const firstBatch = runoffData[1]; // First actual data point (not registration)
+      changes.unshift({
+        date: firstBatch.date,
+        totalChange: firstBatch.total,
+        demPercent: (firstBatch.dem / firstBatch.total * 100).toFixed(1),
+        repPercent: (firstBatch.rep / firstBatch.total * 100).toFixed(1),
+        otherPercent: (firstBatch.other / firstBatch.total * 100).toFixed(1)
       });
     }
     
