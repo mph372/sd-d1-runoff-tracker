@@ -272,67 +272,82 @@ function BallotReturnsDashboard() {
       </div>
       
       {currentStats && (
-        <div className="row mb-4">
-          <div className={isMobile ? "col-12 mb-3" : "col-md-6 mb-3"}>
-            <div className="card h-100">
-              <div className="card-header">
-                Current Turnout
-              </div>
-              <div className="card-body">
-                <h3 className="card-title mb-3">{currentStats.turnoutRate}%</h3>
-                <p className="card-text">
-                  {currentStats.totalReturned.toLocaleString()} ballots returned out of {currentStats.totalRegistered.toLocaleString()} registered voters
-                </p>
+        <div className="card mb-4">
+          <div className="card-header">
+            Current Snapshot
+          </div>
+          <div className="card-body">
+            {/* Turnout Summary */}
+            <div className="row mb-4">
+              <div className="col-12">
+                <div className="text-center p-3 bg-light rounded">
+                  <h2 className="mb-2 text-primary">{currentStats.turnoutRate}% Turnout</h2>
+                  <p className="mb-0 text-muted">
+                    {currentStats.totalReturned.toLocaleString()} ballots returned out of {currentStats.totalRegistered.toLocaleString()} registered voters
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className={isMobile ? "col-12" : "col-md-6"}>
-            <div className="card h-100">
-              <div className="card-header">
-                Party Breakdown
+            
+            {/* Party Breakdown */}
+            <div className="row">
+              <div className={isMobile ? "col-12 mb-3" : "col-md-8 mb-3"}>
+                <h5 className="mb-3">Party Breakdown</h5>
+                <div style={{ width: '100%', height: isMobile ? 300 : 350 }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Democrat', value: parseFloat(currentStats.demPercent) },
+                          { name: 'Republican', value: parseFloat(currentStats.repPercent) },
+                          { name: 'Other', value: parseFloat(currentStats.otherPercent) }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}\n${(percent * 100).toFixed(1)}%`}
+                        outerRadius={isMobile ? 100 : 120}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {COLORS.map((color, index) => (
+                          <Cell key={`cell-${index}`} fill={color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value.toFixed(1)}%`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className={isMobile ? "col-12 mb-3" : "col-md-6"}>
-                    <div style={{ width: '100%', height: isMobile ? 200 : 250 }}>
-                      <ResponsiveContainer>
-                        <PieChart>
-                          <Pie
-                            data={[
-                              { name: 'Democrat', value: parseFloat(currentStats.demPercent) },
-                              { name: 'Republican', value: parseFloat(currentStats.repPercent) },
-                              { name: 'Other', value: parseFloat(currentStats.otherPercent) }
-                            ]}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {COLORS.map((color, index) => (
-                              <Cell key={`cell-${index}`} fill={color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => `${value.toFixed(1)}%`} />
-                        </PieChart>
-                      </ResponsiveContainer>
+              <div className={isMobile ? "col-12" : "col-md-4"}>
+                <h5 className="mb-3">Details</h5>
+                <div className="list-group list-group-flush">
+                  <div className="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                      <span className="text-primary fw-bold">Democrat</span>
+                    </div>
+                    <div className="text-end">
+                      <div className="fw-bold">{currentStats.demPercent}%</div>
+                      <small className="text-muted">{Math.round(currentStats.totalReturned * parseFloat(currentStats.demPercent) / 100).toLocaleString()} ballots</small>
                     </div>
                   </div>
-                  <div className={isMobile ? "col-12" : "col-md-6"}>
-                    <ul className="list-unstyled">
-                      <li className="mb-2">
-                        <span className="text-primary">Democrat:</span> {currentStats.demPercent}%
-                      </li>
-                      <li className="mb-2">
-                        <span className="text-danger">Republican:</span> {currentStats.repPercent}%
-                      </li>
-                      <li>
-                        <span className="text-secondary">Other:</span> {currentStats.otherPercent}%
-                      </li>
-                    </ul>
+                  <div className="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                      <span className="text-danger fw-bold">Republican</span>
+                    </div>
+                    <div className="text-end">
+                      <div className="fw-bold">{currentStats.repPercent}%</div>
+                      <small className="text-muted">{Math.round(currentStats.totalReturned * parseFloat(currentStats.repPercent) / 100).toLocaleString()} ballots</small>
+                    </div>
+                  </div>
+                  <div className="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                      <span className="text-secondary fw-bold">Other</span>
+                    </div>
+                    <div className="text-end">
+                      <div className="fw-bold">{currentStats.otherPercent}%</div>
+                      <small className="text-muted">{Math.round(currentStats.totalReturned * parseFloat(currentStats.otherPercent) / 100).toLocaleString()} ballots</small>
+                    </div>
                   </div>
                 </div>
               </div>
