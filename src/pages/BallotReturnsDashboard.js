@@ -9,6 +9,7 @@ function BallotReturnsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [showRawNumbers, setShowRawNumbers] = useState(false);
   
   // Track window resize for responsive design
   useEffect(() => {
@@ -166,6 +167,10 @@ function BallotReturnsDashboard() {
       const daysFromElection = Math.ceil((primaryElectionDate - date) / (1000 * 60 * 60 * 24));
       return {
         daysFromElection,
+        total: d.total,
+        dem: d.dem,
+        rep: d.rep,
+        other: d.other,
         'Turnout %': parseFloat((d.total / primaryRegistration.total * 100).toFixed(1)),
         'Dem %': parseFloat((d.dem / d.total * 100).toFixed(1)),
         'Rep %': parseFloat((d.rep / d.total * 100).toFixed(1)),
@@ -180,6 +185,10 @@ function BallotReturnsDashboard() {
       const daysFromElection = Math.ceil((runoffElectionDate - date) / (1000 * 60 * 60 * 24));
       return {
         daysFromElection,
+        total: d.total,
+        dem: d.dem,
+        rep: d.rep,
+        other: d.other,
         'Turnout %': parseFloat((d.total / runoffRegistration.total * 100).toFixed(1)),
         'Dem %': parseFloat((d.dem / d.total * 100).toFixed(1)),
         'Rep %': parseFloat((d.rep / d.total * 100).toFixed(1)),
@@ -209,7 +218,11 @@ function BallotReturnsDashboard() {
         'Turnout %': existingData ? existingData['Turnout %'] : null,
         'Dem %': existingData ? existingData['Dem %'] : null,
         'Rep %': existingData ? existingData['Rep %'] : null,
-        'Other %': existingData ? existingData['Other %'] : null
+        'Other %': existingData ? existingData['Other %'] : null,
+        'Turnout #': existingData ? existingData.total : null,
+        'Dem #': existingData ? existingData.dem : null,
+        'Rep #': existingData ? existingData.rep : null,
+        'Other #': existingData ? existingData.other : null
       };
     });
     
@@ -221,7 +234,11 @@ function BallotReturnsDashboard() {
         'Turnout %': existingData ? existingData['Turnout %'] : null,
         'Dem %': existingData ? existingData['Dem %'] : null,
         'Rep %': existingData ? existingData['Rep %'] : null,
-        'Other %': existingData ? existingData['Other %'] : null
+        'Other %': existingData ? existingData['Other %'] : null,
+        'Turnout #': existingData ? existingData.total : null,
+        'Dem #': existingData ? existingData.dem : null,
+        'Rep #': existingData ? existingData.rep : null,
+        'Other #': existingData ? existingData.other : null
       };
     });
     
@@ -409,6 +426,31 @@ function BallotReturnsDashboard() {
         </p>
       </div>
       
+      {/* Chart Display Toggle */}
+      <div className="mb-3">
+        <div className="btn-group" role="group" aria-label="Chart display options">
+          <input 
+            type="radio" 
+            className="btn-check" 
+            name="chartDisplay" 
+            id="percentages" 
+            checked={!showRawNumbers} 
+            onChange={() => setShowRawNumbers(false)}
+          />
+          <label className="btn btn-outline-primary" htmlFor="percentages">Percentages</label>
+          
+          <input 
+            type="radio" 
+            className="btn-check" 
+            name="chartDisplay" 
+            id="rawNumbers" 
+            checked={showRawNumbers} 
+            onChange={() => setShowRawNumbers(true)}
+          />
+          <label className="btn btn-outline-primary" htmlFor="rawNumbers">Raw Numbers</label>
+        </div>
+      </div>
+      
       {/* Primary Election Chart */}
       {comparisonData && (
         <div className="card mb-4">
@@ -428,15 +470,18 @@ function BallotReturnsDashboard() {
                     label={{ value: 'Days Before Election', position: 'insideBottom', offset: -5 }}
                   />
                   <YAxis 
-                    label={{ value: 'Percentage', angle: -90, position: 'insideLeft' }}
-                    tickFormatter={(value) => `${value}%`}
+                    label={{ value: showRawNumbers ? 'Number of Ballots' : 'Percentage', angle: -90, position: 'insideLeft' }}
+                    tickFormatter={(value) => showRawNumbers ? value.toLocaleString() : `${value}%`}
                   />
-                  <Tooltip formatter={(value) => `${value}%`} />
+                  <Tooltip formatter={(value, name) => {
+                    if (value === null) return ['No data', name];
+                    return showRawNumbers ? [value.toLocaleString(), name] : [`${value}%`, name];
+                  }} />
                   <Legend />
-                  <Bar dataKey="Turnout %" fill="#8884d8" />
-                  <Bar dataKey="Dem %" fill="#2E86C1" />
-                  <Bar dataKey="Rep %" fill="#C0392B" />
-                  <Bar dataKey="Other %" fill="#7F8C8D" />
+                  <Bar dataKey={showRawNumbers ? "Turnout #" : "Turnout %"} fill="#8884d8" />
+                  <Bar dataKey={showRawNumbers ? "Dem #" : "Dem %"} fill="#2E86C1" />
+                  <Bar dataKey={showRawNumbers ? "Rep #" : "Rep %"} fill="#C0392B" />
+                  <Bar dataKey={showRawNumbers ? "Other #" : "Other %"} fill="#7F8C8D" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -463,20 +508,20 @@ function BallotReturnsDashboard() {
                     label={{ value: 'Days Before Election', position: 'insideBottom', offset: -5 }}
                   />
                   <YAxis 
-                    label={{ value: 'Percentage', angle: -90, position: 'insideLeft' }}
-                    tickFormatter={(value) => `${value}%`}
+                    label={{ value: showRawNumbers ? 'Number of Ballots' : 'Percentage', angle: -90, position: 'insideLeft' }}
+                    tickFormatter={(value) => showRawNumbers ? value.toLocaleString() : `${value}%`}
                   />
                   <Tooltip 
                     formatter={(value, name) => {
                       if (value === null) return ['No data yet', name];
-                      return [`${value}%`, name];
+                      return showRawNumbers ? [value.toLocaleString(), name] : [`${value}%`, name];
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="Turnout %" fill="#8884d8" />
-                  <Bar dataKey="Dem %" fill="#2E86C1" />
-                  <Bar dataKey="Rep %" fill="#C0392B" />
-                  <Bar dataKey="Other %" fill="#7F8C8D" />
+                  <Bar dataKey={showRawNumbers ? "Turnout #" : "Turnout %"} fill="#8884d8" />
+                  <Bar dataKey={showRawNumbers ? "Dem #" : "Dem %"} fill="#2E86C1" />
+                  <Bar dataKey={showRawNumbers ? "Rep #" : "Rep %"} fill="#C0392B" />
+                  <Bar dataKey={showRawNumbers ? "Other #" : "Other %"} fill="#7F8C8D" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
