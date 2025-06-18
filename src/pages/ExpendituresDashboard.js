@@ -3,6 +3,7 @@ import Papa from 'papaparse';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import TotalSpendingCard from '../components/TotalSpendingCard';
 import CandidateSpendingCard from '../components/CandidateSpendingCard';
+import PartyMoneyCard from '../components/PartyMoneyCard';
 
 function ExpendituresDashboard() {
   const [data, setData] = useState([]);
@@ -261,6 +262,8 @@ function ExpendituresDashboard() {
     <div>
       <h1 className={isMobile ? "h3 mb-2" : "h2 mb-3"}>Independent Expenditures Dashboard</h1>
       <p className={isMobile ? "small mb-3" : "mb-3"}>Showing independent expenditures for the San Diego District 1 Supervisor Runoff Election.</p>
+      
+      <PartyMoneyCard />
       
       <div className="mb-3">
         <label htmlFor="entityFilter" className="form-label">Filter by Organization:</label>
