@@ -113,7 +113,7 @@ function ExpendituresDashboard() {
     };
     
     loadCSV();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Function to handle sorting
   const requestSort = (key) => {
@@ -218,19 +218,7 @@ function ExpendituresDashboard() {
     };
   }).sort((a, b) => b.amount - a.amount).slice(0, 10); // Sort by amount and get top 10
   
-  // Custom tooltip for entity spending chart to show full names
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="custom-tooltip" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc' }}>
-          <p className="label"><strong>{payload[0].payload.fullName}</strong></p>
-          <p className="value">{`Amount: $${payload[0].value.toLocaleString()}`}</p>
-        </div>
-      );
-    }
-  
-    return null;
-  };
+  // Custom tooltip removed - not used in current implementation
   
   // Party colors
   const partyColors = {

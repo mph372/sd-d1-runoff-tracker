@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+// Chart imports removed - dashboard uses table-only format
 import Papa from 'papaparse';
 
 function ContributionsDashboard() {
@@ -21,9 +21,7 @@ function ContributionsDashboard() {
   // Add a state to track window width for responsive adjustments
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Colors for charts
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
-  const CONTRIBUTOR_CHART_COLOR = '#7373DB';
+  // Chart colors removed - using table-only format
 
   // Effect to handle window resize
   useEffect(() => {
@@ -198,7 +196,7 @@ if (selectedCommittee !== 'All') {
     
     // Calculate stats
     calculateStats(result);
-  }, [data, selectedCommittee, searchTerm, sortConfig]);
+  }, [data, selectedCommittee, searchTerm, sortConfig]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // Function to handle sorting
   const requestSort = (key) => {
